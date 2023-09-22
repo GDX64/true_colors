@@ -1,0 +1,59 @@
+<html>
+  <body>
+    <script type="module">
+      import init, { run_image } from "/pkg/trueColors.js";
+      async function main() {
+        await init();
+        const img = document.querySelector("img");
+        // img.crossOrigin = "anonymous";
+        img.src = "gokuBig.jpg";
+        await new Promise((resolve) => (img.onload = resolve));
+        const bitmap = await createImageBitmap(img);
+        const offCanvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+        const offCtx = offCanvas.getContext("2d");
+        offCtx.drawImage(bitmap, 0, 0);
+        const imageData = offCtx.getImageData(
+          0,
+          0,
+          bitmap.width,
+          bitmap.height
+        );
+        const pixels = imageData.data;
+        const start = performance.now();
+        /** @type {number[]} */
+        const res = run_image(pixels);
+        console.log(performance.now() - start);
+        const canvas = document.querySelector("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = canvas.width * devicePixelRatio;
+        canvas.height = canvas.height * devicePixelRatio;
+        const { height } = canvas;
+        const histSize = res.length;
+        const barWidth = Math.ceil(devicePixelRatio);
+        const width = barWidth * histSize;
+        const maxVal = Math.max(...res);
+        const scaleY = makeLinearScale([0, maxVal], [height, 0]);
+        const scaleX = makeLinearScale([0, histSize], [0, width]);
+        ctx.fillStyle = "#dddddd";
+        ctx.fillRect(0, 0, width, height);
+        res.forEach((val, i) => {
+          ctx.fillStyle = `hsl(${i}, 80%, 50%)`;
+          ctx.fillRect(scaleX(i), scaleY(val), scaleX(barWidth), scaleY(0));
+        });
+      }
+
+      function makeLinearScale(domain, range) {
+        const [x0, x1] = domain;
+        const [y0, y1] = range;
+        const scale = (x) => {
+          return Math.floor(y0 + (x - x0) * ((y1 - y0) / (x1 - x0)));
+        };
+        return scale;
+      }
+      main();
+    </script>
+    <p>Hist test</p>
+    <canvas style="margin: 10px"></canvas>
+    <img src="" style="max-width: 100%; aspect-ratio: 1" />
+  </body>
+</html>

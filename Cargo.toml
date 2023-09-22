@@ -1,0 +1,28 @@
+[package]
+edition = "2021"
+name = "trueColors"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+console_error_panic_hook = "0.1.7"
+wasm-bindgen = "0.2.87"
+wasm-bindgen-futures = "0.4.37"
+[dependencies.web-sys]
+features = [
+  'CanvasRenderingContext2d',
+  'Document',
+  'Element',
+  'HtmlCanvasElement',
+  'Window',
+  'HtmlImageElement',
+  'ImageBitmap',
+  'OffscreenCanvas',
+  'OffscreenCanvasRenderingContext2d',
+  'ImageData',
+]
+version = "0.3.64"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
