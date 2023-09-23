@@ -2,10 +2,10 @@
   <body>
     <script type="module">
       import init, {
-        run_image,
+        hsl_histogram,
         calc_palette,
         calc_with_palette,
-      } from "/pkg/trueColors.js";
+      } from "/pkg/true_colors.js";
       async function main() {
         await init();
         const img = document.createElement("img");
@@ -24,14 +24,11 @@
           imgCanvas.height
         );
         const pixels = imageData.data;
-        const start = performance.now();
         /** @type {number[]} */
         const level = 4;
         const palette = calc_palette(pixels, level);
         const clusteredImage = calc_with_palette(pixels, level);
-        console.log(performance.now() - start);
-        const res = run_image(pixels);
-        console.log({ palette, pixels, res, clusteredImage });
+        const res = hsl_histogram(pixels);
         const canvas = document.getElementById("img-canvas");
         const ctx = canvas.getContext("2d");
         canvas.width = canvas.width * devicePixelRatio;

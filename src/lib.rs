@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn run_image(img: Vec<u8>) -> Vec<usize> {
+pub fn hsl_histogram(img: Vec<u8>) -> Vec<usize> {
     let hsls = RGB::arr_from_byte_array(img)
         .into_iter()
         .map(|rgb| rgb.to_hsl())
