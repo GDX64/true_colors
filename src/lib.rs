@@ -1,7 +1,5 @@
-#![feature(iter_partition_in_place)]
 use core::fmt;
 use std::fmt::Debug;
-
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -165,18 +163,12 @@ impl RGB {
             }
             h /= 6.0;
         }
-        HSL {
-            h: h * 360.0,
-            s: s * 100.0,
-            l: l * 100.0,
-        }
+        HSL { h: h * 360.0 }
     }
 }
 
 struct HSL {
     h: f64,
-    s: f64,
-    l: f64,
 }
 
 impl HSL {
@@ -184,16 +176,18 @@ impl HSL {
         self.h.floor() as usize
     }
 
-    fn histogram(HSLs: Vec<HSL>) -> Vec<usize> {
+    fn histogram(hsls: Vec<HSL>) -> Vec<usize> {
         const N: usize = 360;
         let mut histogram = vec![0; N];
-        HSLs.iter().for_each(|x| {
+        hsls.iter().for_each(|x| {
             histogram[x.bucket() % N] += 1;
         });
         histogram
     }
 }
 
+//My implementation of median_cut algorithm
+//since it is not very deep, I did no bother to make it tail recursive or anything
 fn median_cut(mut rgb: Vec<RGB>, divisions: usize) -> Vec<Vec<RGB>> {
     if divisions == 0 || rgb.len() <= 1 {
         return vec![rgb];
@@ -213,6 +207,7 @@ fn median_cut(mut rgb: Vec<RGB>, divisions: usize) -> Vec<Vec<RGB>> {
         let green_is_max = ranges.g > ranges.r && ranges.g > ranges.b;
         if red_is_max {
             let red_median = median_of_array(&mut rgb, |item, pivot| item.r < pivot.r).clone();
+            //I guess partitioning in place could be faster
             let partitions: (Vec<RGB>, Vec<RGB>) = rgb.into_iter().partition(|color| {
                 return color.r > red_median.r;
             });
@@ -238,6 +233,7 @@ fn median_cut(mut rgb: Vec<RGB>, divisions: usize) -> Vec<Vec<RGB>> {
 }
 
 fn median_of_array<T, F: Fn(&T, &T) -> bool>(v: &mut [T], is_pivot_bigger: F) -> &T {
+    //using quickselect algorithm
     let mut l = 0;
     let mut r = v.len() - 1;
     let k = v.len() / 2;
