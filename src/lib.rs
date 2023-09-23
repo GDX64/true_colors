@@ -142,18 +142,10 @@ impl RGB {
         let max = r.max(g).max(b);
         let min = r.min(g).min(b);
         let mut h = (max + min) / 2.0;
-        let mut s = h;
-        let l = h;
         if max == min {
             h = 0.0;
-            s = 0.0;
         } else {
             let d = max - min;
-            s = if l > 0.5 {
-                d / (2.0 - max - min)
-            } else {
-                d / (max + min)
-            };
             if max == r {
                 h = (g - b) / d + if g < b { 6.0 } else { 0.0 };
             } else if max == g {
