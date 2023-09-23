@@ -104,15 +104,6 @@ impl RGB {
         }
     }
 
-    fn from_u32(x: u32) -> Self {
-        Self {
-            r: (x >> 16) as u8,
-            g: (x >> 8) as u8,
-            b: x as u8,
-            index: 0,
-        }
-    }
-
     fn calc_palette(v: Vec<RGB>, divisions: usize) -> Vec<(RGB, Vec<RGB>)> {
         let vs = median_cut(v, divisions);
         vs.into_iter()
@@ -253,13 +244,31 @@ fn median_of_array<T, F: Fn(&T, &T) -> bool>(v: &mut [T], is_pivot_bigger: F) ->
 mod test_median {
     use crate::RGB;
 
+    impl RGB {
+        fn from_u32(x: u32) -> Self {
+            Self {
+                r: (x >> 16) as u8,
+                g: (x >> 8) as u8,
+                b: x as u8,
+                index: 0,
+            }
+        }
+    }
+
     #[test]
     fn test() {
         let v = vec![0x440044, 0x111100, 0x222200, 0x003333]
             .into_iter()
             .map(RGB::from_u32)
             .collect::<Vec<_>>();
-        let v = RGB::calc_palette(v, 2);
-        println!("{:?}", v);
+        let v = RGB::calc_palette(v, 1);
+        assert_eq!(v.len(), 2);
+    }
+
+    #[test]
+    fn test_median() {
+        let mut v = vec![1, 3, 5, 2, 4];
+        let median = super::median_of_array(&mut v, |a, b| a < b);
+        assert_eq!(3, *median);
     }
 }
