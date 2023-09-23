@@ -1,18 +1,22 @@
 <html>
   <body>
     <script type="module">
-      import init, { run_image, calc_palette } from "/pkg/trueColors.js";
+      import init, {
+        run_image,
+        calc_palette,
+        calc_with_palette,
+      } from "/pkg/trueColors.js";
       async function main() {
         await init();
         const img = document.createElement("img");
-        // img.crossOrigin = "anonymous";
-        img.src = "gokuBig.jpg";
+        img.src = "castle.png";
         await new Promise((resolve) => (img.onload = resolve));
         const bitmap = await createImageBitmap(img);
         /** @type {HTMLCanvasElement} */
-        const imgCanvas = document.getElementById("img-canvas");
+        const imgCanvas = document.getElementById("canvas-stats");
         const imgCtx = imgCanvas.getContext("2d");
         imgCtx.drawImage(bitmap, 0, 0, imgCanvas.width, imgCanvas.height);
+
         const imageData = imgCtx.getImageData(
           0,
           0,
@@ -22,11 +26,13 @@
         const pixels = imageData.data;
         const start = performance.now();
         /** @type {number[]} */
-        const palette = calc_palette(pixels, 5);
+        const level = 4;
+        const palette = calc_palette(pixels, level);
+        const clusteredImage = calc_with_palette(pixels, level);
         console.log(performance.now() - start);
         const res = run_image(pixels);
-        console.log({ palette, pixels, res });
-        const canvas = document.querySelector("canvas");
+        console.log({ palette, pixels, res, clusteredImage });
+        const canvas = document.getElementById("img-canvas");
         const ctx = canvas.getContext("2d");
         canvas.width = canvas.width * devicePixelRatio;
         canvas.height = canvas.height * devicePixelRatio;
@@ -45,9 +51,20 @@
         });
         palette.forEach((color, index) => {
           ctx.fillStyle = `#${color.toString(16)}`;
-          console.log(color.toString(16));
-          ctx.fillRect(index * 30, 0, 30, 30);
+          ctx.fillRect(index * 15, 0, 15, 15);
         });
+
+        //draw clusteredImage
+        const ctxCluster = document
+          .getElementById("img-cluster")
+          .getContext("2d");
+
+        const datacluster = new ImageData(
+          new Uint8ClampedArray(clusteredImage),
+          imgCanvas.width,
+          imgCanvas.height
+        );
+        ctxCluster.putImageData(datacluster, 0, 0);
       }
 
       function makeLinearScale(domain, range) {
@@ -60,11 +77,26 @@
       }
       main();
     </script>
-    <p>Hist test</p>
-    <canvas style="margin: 10px"></canvas>
+    <p>Median cut algorithm</p>
     <canvas
+      width="360"
+      height="100"
       id="img-canvas"
-      style="margin: 10px; width: 100vw; aspect-ratio: 1"
+      style="margin: 10px"
     ></canvas>
+    <div style="display: flex">
+      <canvas
+        width="512"
+        height="512"
+        id="canvas-stats"
+        style="margin: 10px; aspect-ratio: 1"
+      ></canvas>
+      <canvas
+        width="512"
+        height="512"
+        id="img-cluster"
+        style="margin: 10px; aspect-ratio: 1"
+      ></canvas>
+    </div>
   </body>
 </html>
