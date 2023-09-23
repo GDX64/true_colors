@@ -1,28 +1,31 @@
 <html>
   <body>
     <script type="module">
-      import init, { run_image } from "/pkg/trueColors.js";
+      import init, { run_image, calc_palette } from "/pkg/trueColors.js";
       async function main() {
         await init();
-        const img = document.querySelector("img");
+        const img = document.createElement("img");
         // img.crossOrigin = "anonymous";
         img.src = "gokuBig.jpg";
         await new Promise((resolve) => (img.onload = resolve));
         const bitmap = await createImageBitmap(img);
-        const offCanvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-        const offCtx = offCanvas.getContext("2d");
-        offCtx.drawImage(bitmap, 0, 0);
-        const imageData = offCtx.getImageData(
+        /** @type {HTMLCanvasElement} */
+        const imgCanvas = document.getElementById("img-canvas");
+        const imgCtx = imgCanvas.getContext("2d");
+        imgCtx.drawImage(bitmap, 0, 0, imgCanvas.width, imgCanvas.height);
+        const imageData = imgCtx.getImageData(
           0,
           0,
-          bitmap.width,
-          bitmap.height
+          imgCanvas.width,
+          imgCanvas.height
         );
         const pixels = imageData.data;
         const start = performance.now();
         /** @type {number[]} */
-        const res = run_image(pixels);
+        const palette = calc_palette(pixels, 5);
         console.log(performance.now() - start);
+        const res = run_image(pixels);
+        console.log({ palette, pixels, res });
         const canvas = document.querySelector("canvas");
         const ctx = canvas.getContext("2d");
         canvas.width = canvas.width * devicePixelRatio;
@@ -40,6 +43,11 @@
           ctx.fillStyle = `hsl(${i}, 80%, 50%)`;
           ctx.fillRect(scaleX(i), scaleY(val), scaleX(barWidth), scaleY(0));
         });
+        palette.forEach((color, index) => {
+          ctx.fillStyle = `#${color.toString(16)}`;
+          console.log(color.toString(16));
+          ctx.fillRect(index * 30, 0, 30, 30);
+        });
       }
 
       function makeLinearScale(domain, range) {
@@ -54,6 +62,9 @@
     </script>
     <p>Hist test</p>
     <canvas style="margin: 10px"></canvas>
-    <img src="" style="max-width: 100%; aspect-ratio: 1" />
+    <canvas
+      id="img-canvas"
+      style="margin: 10px; width: 100vw; aspect-ratio: 1"
+    ></canvas>
   </body>
 </html>
